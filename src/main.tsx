@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
 
+console.log('API Key available:', !!import.meta.env.VITE_OPENAI_API_KEY);
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>

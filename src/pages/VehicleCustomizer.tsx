@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Share2 } from 'lucide-react';
 
@@ -88,6 +88,22 @@ export function VehicleCustomizer() {
 
   const getInteriorTabStyle = (tab: InteriorTab) =>
     interiorTab === tab ? "flex-1 bg-white text-black py-2 rounded" : "flex-1 bg-transparent text-white border border-gray-600 py-2 rounded";
+
+  useEffect(() => {
+    const handleColorChange = (event: CustomEvent) => {
+      const { color } = event.detail;
+      const newColor = colorOptions.find(c => c.name === color);
+      if (newColor) {
+        setSelectedColor(newColor);
+      }
+    };
+
+    window.addEventListener('changeVehicleColor', handleColorChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('changeVehicleColor', handleColorChange as EventListener);
+    };
+  }, [colorOptions]);
 
   return (
     <div className="min-h-screen bg-black">
