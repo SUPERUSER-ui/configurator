@@ -13,100 +13,157 @@ export function VoiceAssistant() {
   const [isListening, setIsListening] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const processingRef = useRef(false);
   const navigate = useNavigate();
+
+  // Función para convertir texto a voz
+  const speak = async (text: string) => {
+    try {
+      const response = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'tts-1-hd',
+          voice: 'alloy',
+          input: text,
+          speed: 1.0,
+          response_format: 'mp3',
+        }),
+      });
+
+      if (!response.ok) throw new Error('Error generating speech');
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      audio.volume = 1.0;
+      audio.playbackRate = 1.0;
+      
+      await new Promise((resolve) => {
+        audio.oncanplaythrough = resolve;
+        audio.load();
+      });
+
+      await audio.play();
+
+      // Limpiar URL después de reproducir
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+      };
+    } catch (error) {
+      console.error('Error en text-to-speech:', error);
+    }
+  };
 
   // Funciones del asistente
   const assistantFunctions = {
     changeVehicleColor: async ({ color }: { color: string }) => {
-      // Emitir un evento personalizado para cambiar el color
       window.dispatchEvent(new CustomEvent('changeVehicleColor', { detail: { color } }));
+      await speak(`Color cambiado a ${color}`);
       return { success: true, color };
     },
     
     selectVehicleModel: async ({ modelId }: { modelId: string }) => {
       navigate(`/build/${modelId}`);
+      await speak(`Mostrando modelo ${modelId}`);
       return { success: true, modelId };
     },
     
     navigateTo: async ({ path }: { path: string }) => {
       navigate(path);
+      await speak('Cambiando de página');
       return { success: true, path };
     }
   };
 
   const startListening = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 16000,
+          channelCount: 1
+        }
+      });
+      
       streamRef.current = stream;
       
-      const mediaRecorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported('audio/wav') 
+        ? 'audio/wav' 
+        : MediaRecorder.isTypeSupported('audio/mp3')
+          ? 'audio/mp3'
+          : 'audio/webm';
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType,
+        audioBitsPerSecond: 128000
+      });
+      
       mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
       
-      const audioChunks: Blob[] = [];
-      
-      mediaRecorder.ondataavailable = async (event) => {
+      mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          audioChunks.push(event.data);
-        }
-        
-        if (mediaRecorder.state === 'inactive') {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          await processAudio(audioBlob);
-          audioChunks.length = 0; // Limpiar el array
+          audioChunksRef.current.push(event.data);
         }
       };
 
-      mediaRecorder.onstop = () => {
-        if (isListening) {
-          // Si aún estamos escuchando, iniciar una nueva grabación
-          startNewRecording();
+      mediaRecorder.onstop = async () => {
+        if (audioChunksRef.current.length > 0) {
+          await processCurrentAudio();
         }
       };
 
-      startNewRecording();
+      // Iniciar grabación
+      mediaRecorder.start(3000);
       setIsListening(true);
       setIsMicOn(true);
+      
+      await speak('Hola, ¿en qué puedo ayudarle?');
+      
     } catch (error) {
       console.error('Error accessing microphone:', error);
       setError('Error al acceder al micrófono');
     }
   };
 
-  const startNewRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
-      mediaRecorderRef.current.start();
-      // Detener la grabación después de 5 segundos
-      setTimeout(() => {
-        if (mediaRecorderRef.current?.state === 'recording') {
-          mediaRecorderRef.current.stop();
-        }
-      }, 5000);
-    }
-  };
+  const processCurrentAudio = async () => {
+    if (audioChunksRef.current.length === 0) return;
 
-  const stopListening = () => {
-    setIsListening(false);
-    setIsMicOn(false);
-    
-    if (mediaRecorderRef.current) {
-      if (mediaRecorderRef.current.state === 'recording') {
-        mediaRecorderRef.current.stop();
-      }
-    }
-
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-  };
-
-  const processAudio = async (audioBlob: Blob) => {
     try {
+      // Convertir los chunks a un único blob de audio
+      const audioBlob = new Blob(audioChunksRef.current, { 
+        type: mediaRecorderRef.current?.mimeType || 'audio/webm' 
+      });
+
+      // Crear un objeto FormData
       const formData = new FormData();
-      formData.append('file', audioBlob, 'audio.webm');
+      
+      // Agregar el archivo con la extensión correcta basada en el tipo MIME
+      const fileExtension = audioBlob.type.includes('wav') 
+        ? 'wav' 
+        : audioBlob.type.includes('mp3')
+          ? 'mp3'
+          : 'webm';
+          
+      formData.append('file', audioBlob, `audio.${fileExtension}`);
       formData.append('model', 'whisper-1');
       formData.append('response_format', 'json');
+      formData.append('language', 'es');
 
-      const response = await fetch('/api/v1/audio/transcriptions', {
+      console.log('Sending audio for transcription...', {
+        fileType: audioBlob.type,
+        fileSize: audioBlob.size,
+        fileName: `audio.${fileExtension}`
+      });
+
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${API_KEY}`
@@ -114,25 +171,55 @@ export function VoiceAssistant() {
         body: formData
       });
 
+      const responseText = await response.text();
+      console.log('Raw API Response:', responseText);
+
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
+        throw new Error(`OpenAI API error: ${response.status} - ${responseText}`);
       }
 
-      const transcription = await response.json();
-      console.log('Transcription:', transcription);
+      try {
+        const transcription = JSON.parse(responseText);
+        console.log('Transcription received:', transcription);
 
-      // Procesar el comando de voz
-      await processCommand(transcription.text);
+        if (transcription.text && transcription.text.trim()) {
+          await processCommand(transcription.text);
+        }
+      } catch (parseError) {
+        console.error('Error parsing transcription:', parseError);
+        throw new Error('Invalid response format from API');
+      }
 
     } catch (error) {
       console.error('Error processing audio:', error);
       setError('Error al procesar el audio');
+    } finally {
+      audioChunksRef.current = []; // Limpiar el buffer
+    }
+  };
+
+  const stopListening = async () => {
+    try {
+      setIsListening(false);
+      
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+
+      setIsMicOn(false);
+      await speak('Entendido.');
+    } catch (error) {
+      console.error('Error stopping recording:', error);
+      setError('Error al detener la grabación');
     }
   };
 
   const processCommand = async (text: string) => {
     try {
-      // Enviar el texto a GPT para interpretación
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -144,11 +231,26 @@ export function VoiceAssistant() {
           messages: [
             {
               role: 'system',
-              content: `You are a BMW vehicle customization assistant. Available functions:
-                - changeVehicleColor(color): Changes vehicle color (options: Alpine White, Black Sapphire, Dark Graphite, Mineral White)
-                - selectVehicleModel(modelId): Selects a vehicle model (options: xdrive50, m60)
-                - navigateTo(path): Navigates to a page (options: /, /build/ix, /build/i4)
-              `
+              content: `Eres un asistente de BMW especializado en personalización de vehículos. 
+                IMPORTANTE: Debes responder SIEMPRE en español, usando un tono profesional pero amigable.
+
+                Funciones disponibles:
+                - changeVehicleColor(color): Cambia el color del vehículo (opciones: Alpine White, Black Sapphire, Dark Graphite, Mineral White)
+                - selectVehicleModel(modelId): Selecciona un modelo (opciones: xdrive50, m60)
+                - navigateTo(path): Navega a una página (opciones: /, /build/ix, /build/i4)
+                
+                Instrucciones adicionales:
+                - Usa términos automotrices en español
+                - Mantén un tono cordial y profesional
+                - Responde de manera concisa y clara
+                - Si no entiendes algo, pide aclaraciones en español
+                - Usa "usted" para dirigirte al cliente
+                
+                Ejemplos de respuestas:
+                - "Por supuesto, cambiaré el color a Alpine White para que pueda apreciar este elegante acabado."
+                - "Le mostraré el modelo xdrive50, conocido por su excepcional rendimiento."
+                - "¿Le gustaría que le explique más detalles sobre este modelo en particular?"
+                `
             },
             {
               role: 'user',
@@ -205,18 +307,21 @@ export function VoiceAssistant() {
 
       const result = await response.json();
       
-      // Ejecutar la función si GPT la identificó
       if (result.choices[0]?.message?.function_call) {
         const { name, arguments: args } = result.choices[0].message.function_call;
         const fn = assistantFunctions[name as keyof typeof assistantFunctions];
         if (fn) {
           await fn(JSON.parse(args));
         }
+      } else if (result.choices[0]?.message?.content) {
+        // Si no hay una función para llamar, reproducir la respuesta directamente
+        await speak(result.choices[0].message.content);
       }
 
     } catch (error) {
       console.error('Error processing command:', error);
       setError('Error al procesar el comando');
+      await speak('Perdón, ¿puede repetirlo?');
     }
   };
 
