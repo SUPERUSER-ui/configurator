@@ -1,8 +1,10 @@
 import { VoiceAssistantFunctions } from '../types/voice';
+import { useNavigate } from 'react-router-dom';
 
 export const createAssistantFunctions = (
   setSelectedColor: (color: string) => void,
-  setSelectedModel: (modelId: string) => void
+  setSelectedModel: (modelId: string) => void,
+  navigate: ReturnType<typeof useNavigate>
 ): VoiceAssistantFunctions => ({
   changeVehicleColor: async ({ color }: { color: string }) => {
     setSelectedColor(color);
@@ -15,7 +17,7 @@ export const createAssistantFunctions = (
   },
 
   navigateTo: async ({ path }: { path: string }) => {
-    window.location.href = path;
+    navigate(path);
     return { success: true, path };
   }
 }); 
