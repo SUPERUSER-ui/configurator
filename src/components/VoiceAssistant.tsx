@@ -8,12 +8,24 @@ import { createAssistantFunctions } from '../utils/assistantFunctions';
 const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 export function VoiceAssistant() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMicOn, setIsMicOn] = useState(false);
+  const [isOpen, setIsOpen] = useState(() => {
+    return localStorage.getItem('voiceAssistant.isOpen') === 'true'
+  });
+  const [isMicOn, setIsMicOn] = useState(() => {
+    return localStorage.getItem('voiceAssistant.isMicOn') === 'true'
+  });
   const [error, setError] = useState<string | null>(null);
   const webRTCManagerRef = useRef<WebRTCManager | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.setItem('voiceAssistant.isOpen', isOpen.toString());
+  }, [isOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('voiceAssistant.isMicOn', isMicOn.toString());
+  }, [isMicOn]);
 
   useEffect(() => {
     try {
@@ -44,20 +56,27 @@ export function VoiceAssistant() {
         functions: assistantFunctions
       });
 
+      // Reconectar si estaba activo anteriormente
+      if (isMicOn && webRTCManagerRef.current) {
+        webRTCManagerRef.current.connect();
+      }
+
     } catch (error) {
       console.error('Error initializing voice assistant:', error);
       setError('Error initializing voice assistant');
     }
 
-    // Cleanup
+    // Modificar el cleanup para no desconectar al navegar
     return () => {
-      webRTCManagerRef.current?.disconnect();
+      if (!isMicOn && webRTCManagerRef.current) {
+        webRTCManagerRef.current.disconnect();
+      }
       if (audioElementRef.current) {
         audioElementRef.current.remove();
         audioElementRef.current = null;
       }
     };
-  }, [navigate]);
+  }, [navigate, isMicOn]);
 
   const startListening = async () => {
     try {
