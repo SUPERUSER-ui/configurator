@@ -19,6 +19,7 @@ interface UpholsteryOption {
   price: number;
   image: string;
   color?: string;
+  description?: string;
 }
 
 const colorOptions: ColorOption[] = [
@@ -55,28 +56,32 @@ const upholsteryOptions: UpholsteryOption[] = [
     type: 'PERFORATED_SENSATEC',
     price: 0,
     image: '/src/assets/images/customized/iX xDrive50/interior/Oyster.png',
-    color: '#E5D9D0'
+    color: '#E5D9D0',
+    description: 'Breathable, soft, and crafted for comfort.'
   },
   {
     name: 'Mocha',
     type: 'PERFORATED_SENSATEC',
     price: 0,
     image: '/src/assets/images/customized/iX xDrive50/interior/Mocha.png',
-    color: '#8B4513'
+    color: '#8B4513',
+    description: 'Breathable, soft, and crafted for comfort.'
   },
   {
     name: 'Black',
     type: 'PERFORATED_SENSATEC',
     price: 0,
     image: '/src/assets/images/customized/iX xDrive50/interior/Black.png',
-    color: '#000000'
+    color: '#000000',
+    description: 'Breathable, soft, and crafted for comfort.'
   },
   {
     name: 'Stonegray Microfiber/Wool Blend',
     type: 'FINE_TEXTILE',
     price: 2000,
     image: '/src/assets/images/customized/iX xDrive50/interior/Stonegray Microfiber Wool Blend.png',
-    color: '#808080'
+    color: '#808080',
+    description: 'Breathable, soft, and crafted for comfort.'
   }
 ];
 
@@ -142,9 +147,9 @@ export function VehicleCustomizer() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-white">
       {/* Navigation Bar */}
-      <nav className="bg-black text-white border-b border-gray-800">
+      <nav className="bg-white text-black border-b border-gray-800">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <Link to={`/build/${vehicleId}`} className="flex items-center space-x-2">
@@ -195,28 +200,28 @@ export function VehicleCustomizer() {
             }}
           />
           <div className="absolute bottom-8 left-8">
-            <div className="text-white space-y-2">
+            <div className={`text-${activeTab === 'exterior' ? 'black' : 'white'} space-y-2`}>
               <div className="uppercase text-sm">
-                {activeTab === 'exterior' ? selectedColor.name : 'CASTANEA CHESTNUT PERFORATED LEATHER'}
+                {activeTab === 'exterior' ? selectedColor.name :  `${selectedUpholstery.name} PERFORATED SENSATEC`}
               </div>
               <div className="text-2xl">
                 {activeTab === 'exterior' 
                   ? "Brilliant, vibrant colors with a metallic shine."
-                  : "Unmistakable luxury of vegetable-tanned leather, tailored for your seats and dashboard."}
+                  : `${selectedUpholstery.description}`}
               </div>
             </div>
           </div>
         </div>
 
         {/* Customization Panel */}
-        <div className="w-96 bg-[#1c1c1c] text-white p-6">
+        <div className="w-96 bg-[#ffffff] text-black p-6">
           {activeTab === 'exterior' ? (
             <>
               <div className="mb-8">
                 <h2 className="text-xl mb-4">Choose your exterior</h2>
                 <div className="flex space-x-4">
-                  <button className="flex-1 bg-white text-black py-2 rounded">Color</button>
-                  <button className="flex-1 bg-transparent text-white border border-gray-600 py-2 rounded">Wheels</button>
+                  <button className="flex-1 bg-black text-white py-2 rounded">Color</button>
+                  <button className="flex-1 bg-transparent text-black border border-gray-600 py-2 rounded">Wheels</button>
                 </div>
               </div>
 
@@ -231,7 +236,7 @@ export function VehicleCustomizer() {
                         key={color.name}
                         onClick={() => setSelectedColor(color)}
                         className={`w-full flex items-center space-x-4 p-4 rounded ${
-                          selectedColor.name === color.name ? 'bg-gray-800' : ''
+                          selectedColor.name === color.name ? 'bg-[#F2F4F8]' : ''
                         }`}
                       >
                         <div className="w-12 h-12 bg-white rounded-full" />
@@ -252,7 +257,7 @@ export function VehicleCustomizer() {
                         key={color.name}
                         onClick={() => setSelectedColor(color)}
                         className={`w-full flex items-center space-x-4 p-4 rounded ${
-                          selectedColor.name === color.name ? 'bg-gray-800' : ''
+                          selectedColor.name === color.name ? 'bg-[#F2F4F8]' : ''
                         }`}
                       >
                         <div className="w-12 h-12 bg-gray-600 rounded-full" />
@@ -303,7 +308,7 @@ export function VehicleCustomizer() {
                         key={option.name}
                         onClick={() => setSelectedUpholstery(option)}
                         className={`w-full flex items-center space-x-4 p-4 rounded ${
-                          selectedUpholstery.name === option.name ? 'bg-gray-800' : ''
+                          selectedUpholstery.name === option.name ? 'bg-[#F2F4F8]' : ''
                         }`}
                       >
                         <div className="w-12 h-12 rounded-full" style={{ backgroundColor: option.color }} />
@@ -324,7 +329,7 @@ export function VehicleCustomizer() {
                         key={option.name}
                         onClick={() => setSelectedUpholstery(option)}
                         className={`w-full flex items-center space-x-4 p-4 rounded ${
-                          selectedUpholstery.name === option.name ? 'bg-gray-800' : ''
+                          selectedUpholstery.name === option.name ? 'bg-[#F2F4F8]' : ''
                         }`}
                       >
                         <div 
@@ -343,7 +348,7 @@ export function VehicleCustomizer() {
           )}
 
           {/* Bottom Actions */}
-          <div className="fixed bottom-0 right-0 w-96 bg-[#1c1c1c] p-6 border-t border-gray-800">
+          <div className="fixed bottom-0 right-0 w-96 bg-[#ffffff] p-6 border-t border-gray-800">
             <div className="flex justify-between items-center mb-4">
               <div className="text-sm">MSRP AS BUILT</div>
               <div className="text-xl">${(basePrice + (selectedUpholstery?.price || 0)).toLocaleString()}</div>

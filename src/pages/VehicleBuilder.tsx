@@ -123,7 +123,7 @@ export function VehicleBuilder() {
                   <img 
                     src={model.image} 
                     alt={model.name}
-                    className="absolute inset-0 w-full h-full object-scale-down"
+                    className="absolute inset-0 w-full h-full object-scale-down p-6"
                   />
                 </div>
               </div>
