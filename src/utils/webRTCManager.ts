@@ -13,6 +13,10 @@ export class WebRTCManager {
   private dataChannel: RTCDataChannel | null = null;
 
   constructor(private config: WebRTCManagerConfig) {
+    this.initializePeerConnection();
+  }
+
+  private initializePeerConnection() {
     this.peerConnection = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     });
@@ -200,7 +204,18 @@ export class WebRTCManager {
   }
 
   disconnect() {
-    this.dataChannel?.close();
-    this.peerConnection.close();
+    // Cerrar el canal de datos
+    if (this.dataChannel) {
+      this.dataChannel.close();
+      this.dataChannel = null;
+    }
+
+    // Cerrar la conexión peer
+    if (this.peerConnection) {
+      this.peerConnection.close();
+    }
+
+    // Reinicializar la conexión para futuros usos
+    this.initializePeerConnection();
   }
 } 

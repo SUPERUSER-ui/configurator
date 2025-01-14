@@ -21,6 +21,9 @@ export function VoiceAssistant() {
   const [error, setError] = useState<string | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const navigate = useNavigate();
+  const [isConnecting, setIsConnecting] = useState(false);
+  const lastClickTime = useRef<number>(0);
+  const DEBOUNCE_TIME = 1000; // 1 segundo entre clics
 
   useEffect(() => {
     localStorage.setItem('voiceAssistant.isOpen', isOpen.toString());
@@ -115,10 +118,21 @@ export function VoiceAssistant() {
   }, [navigate, isMicOn, hasPermission]);
 
   const startListening = async () => {
+    // Prevenir clics rápidos
+    const now = Date.now();
+    if (now - lastClickTime.current < DEBOUNCE_TIME) {
+      return;
+    }
+    lastClickTime.current = now;
+
     try {
+      setIsConnecting(true);
       // Verificar permisos antes de iniciar
       const permitted = await checkMicrophonePermission();
-      if (!permitted) return;
+      if (!permitted) {
+        setIsConnecting(false);
+        return;
+      }
 
       if (!globalWebRTCManager) {
         throw new Error('WebRTC manager not initialized');
@@ -127,22 +141,33 @@ export function VoiceAssistant() {
       await globalWebRTCManager.connect();
       setIsMicOn(true);
       setError(null);
-
     } catch (error) {
       console.error('Error starting voice assistant:', error);
       setError('Error al acceder al micrófono');
       setIsMicOn(false);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
   const stopListening = async () => {
+    // Prevenir clics rápidos
+    const now = Date.now();
+    if (now - lastClickTime.current < DEBOUNCE_TIME) {
+      return;
+    }
+    lastClickTime.current = now;
+
     try {
+      setIsConnecting(true);
       globalWebRTCManager?.disconnect();
       setIsMicOn(false);
       setError(null);
     } catch (error) {
       console.error('Error stopping voice assistant:', error);
       setError('Error al detener el asistente de voz');
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -168,8 +193,8 @@ export function VoiceAssistant() {
           onClick={() => isMicOn ? stopListening() : startListening()}
           className={`p-4 rounded-full transition-colors ${
             isMicOn ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-          } hover:bg-opacity-80`}
-          disabled={hasPermission === false}
+          } hover:bg-opacity-80 ${isConnecting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={hasPermission === false || isConnecting}
         >
           {isMicOn ? <Mic size={24} /> : <MicOff size={24} />}
         </button>
