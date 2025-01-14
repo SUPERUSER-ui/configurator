@@ -110,6 +110,37 @@ export function VehicleCustomizer() {
     };
   }, [colorOptions]);
 
+  useEffect(() => {
+    const handleInteriorChange = (event: CustomEvent) => {
+      const { upholstery } = event.detail;
+      const newUpholstery = upholsteryOptions.find(u => u.name === upholstery);
+      if (newUpholstery) {
+        setSelectedUpholstery(newUpholstery);
+      }
+    };
+
+    window.addEventListener('changeInteriorColor', handleInteriorChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('changeInteriorColor', handleInteriorChange as EventListener);
+    };
+  }, [upholsteryOptions]);
+
+  useEffect(() => {
+    const handleTabChange = (event: CustomEvent) => {
+      const { tab } = event.detail;
+      if (tab === 'exterior' || tab === 'interior') {
+        setActiveTab(tab as CustomizationTab);
+      }
+    };
+
+    window.addEventListener('changeTab', handleTabChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('changeTab', handleTabChange as EventListener);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-black">
       {/* Navigation Bar */}
