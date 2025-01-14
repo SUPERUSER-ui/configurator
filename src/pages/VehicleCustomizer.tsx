@@ -161,7 +161,7 @@ export function VehicleCustomizer() {
               <ArrowLeft size={20} />
               <div>
                 <div className="text-xs">2025</div>
-                <div>iX M60</div>
+                <div>iX xDrive50</div>
               </div>
             </Link>
           </div>
@@ -194,12 +194,16 @@ export function VehicleCustomizer() {
       {/* Main Content */}
       <div className="flex">
         {/* Vehicle Preview */}
-        <div className={`bg-${activeTab === 'exterior' ? 'white' : 'black'} flex-1 min-h-[calc(100vh-64px)] relative`}>
-          <img 
-            src={activeTab === 'exterior' ? selectedColor.image : selectedUpholstery.image}
-            alt={activeTab === 'exterior' ? selectedColor.name : selectedUpholstery.name}
-            className="w-full h-full object-contain"
-          />
+        <div className={`bg-${activeTab === 'exterior' ? 'white' : 'black'} flex-1 min-h-[calc(100vh-64px)] relative transition-colors duration-500`}>
+          <div className="relative w-full h-full">
+            <img 
+              key={activeTab === 'exterior' ? selectedColor.image : selectedUpholstery.image}
+              src={activeTab === 'exterior' ? selectedColor.image : selectedUpholstery.image}
+              alt={activeTab === 'exterior' ? selectedColor.name : selectedUpholstery.name}
+              className="w-full h-full object-contain transition-opacity duration-500 animate-fadeIn"
+            />
+          </div>
+
           <div className={`text-${activeTab === 'exterior' ? 'black' : 'white'} absolute`} style={{bottom: '30px', right: '30px'}}>
             <div className="flex items-center space-x-2">
               <span className="text-sm uppercase">MSRP AS BUILT</span>
@@ -221,11 +225,11 @@ export function VehicleCustomizer() {
           </div>
 
           <div className="absolute bottom-8 left-8">
-            <div className={`text-${activeTab === 'exterior' ? 'black' : 'white'} space-y-2`}>
-              <div className="uppercase text-sm">
-                {activeTab === 'exterior' ? selectedColor.name : `${selectedUpholstery.name} Perforated SensaTec` }
+            <div className={`text-${activeTab === 'exterior' ? 'black' : 'white'} space-y-2 transition-all duration-500`}>
+              <div className="uppercase text-sm transition-all duration-300">
+                {activeTab === 'exterior' ? selectedColor.name : `${selectedUpholstery.name} Perforated SensaTec`}
               </div>
-              <div className="text-2xl font-light">
+              <div className="text-2xl font-light transition-all duration-300">
                 {activeTab === 'exterior' 
                   ? "Brilliant, vibrant colors with a metallic shine."
                   : selectedUpholstery.description}
@@ -258,13 +262,16 @@ export function VehicleCustomizer() {
                         <button
                           key={color.name}
                           onClick={() => setSelectedColor(color)}
-                          className={`w-full flex items-center space-x-4 p-4 rounded ${
+                          className={`w-full flex items-center space-x-4 p-4 rounded transition-all duration-300 transform hover:scale-[1.02] ${
                             selectedColor.name === color.name ? 'bg-[#F2F4F8]' : ''
                           }`}
                         >
-                          <div className="w-12 h-12 bg-white rounded-full" style={{ backgroundColor: color.color, border: `0.5px solid black` }} />
+                          <div 
+                            className="w-12 h-12 bg-white rounded-full transition-transform duration-300 hover:scale-110" 
+                            style={{ backgroundColor: color.color, border: `0.5px solid black` }} 
+                          />
                           <div className="flex-1 text-left">
-                            <div>{color.name}</div>
+                            <div className="transition-colors duration-300">{color.name}</div>
                             <div className="text-sm text-gray-400">${color.price}</div>
                           </div>
                         </button>
@@ -279,11 +286,14 @@ export function VehicleCustomizer() {
                         <button
                           key={color.name}
                           onClick={() => setSelectedColor(color)}
-                          className={`w-full flex items-center space-x-4 p-4 rounded ${
+                          className={`w-full flex items-center space-x-4 p-4 rounded transition-all duration-300 transform hover:scale-[1.02] ${
                             selectedColor.name === color.name ? 'bg-[#F2F4F8]' : ''
                           }`}
                         >
-                          <div className="w-12 h-12 bg-gray-600 rounded-full" style={{ backgroundColor: color.color, border: `0.5px solid black` }} />
+                          <div 
+                            className="w-12 h-12 bg-gray-600 rounded-full transition-transform duration-300 hover:scale-110" 
+                            style={{ backgroundColor: color.color, border: `0.5px solid black` }} 
+                          />
                           <div className="flex-1 text-left">
                             <div className="flex items-center space-x-2">
                               <span>{color.name}</span>
@@ -330,13 +340,16 @@ export function VehicleCustomizer() {
                         <button
                           key={option.name}
                           onClick={() => setSelectedUpholstery(option)}
-                          className={`w-full flex items-center space-x-4 p-4 rounded ${
+                          className={`w-full flex items-center space-x-4 p-4 rounded transition-all duration-300 transform hover:scale-[1.02] ${
                             selectedUpholstery.name === option.name ? 'bg-[#F2F4F8]' : ''
                           }`}
                         >
-                          <div className="w-12 h-12 rounded-full" style={{ backgroundColor: option.color }} />
+                          <div 
+                            className="w-12 h-12 rounded-full transition-transform duration-300 hover:scale-110" 
+                            style={{ backgroundColor: option.color }}
+                          />
                           <div className="flex-1 text-left">
-                            <div>{option.name}</div>
+                            <div className="transition-colors duration-300">{option.name}</div>
                             <div className="text-sm text-gray-400">${option.price}</div>
                           </div>
                         </button>
@@ -351,16 +364,16 @@ export function VehicleCustomizer() {
                         <button
                           key={option.name}
                           onClick={() => setSelectedUpholstery(option)}
-                          className={`w-full flex items-center space-x-4 p-4 rounded ${
+                          className={`w-full flex items-center space-x-4 p-4 rounded transition-all duration-300 transform hover:scale-[1.02] ${
                             selectedUpholstery.name === option.name ? 'bg-[#F2F4F8]' : ''
                           }`}
                         >
                           <div 
-                            className="w-12 h-12 rounded-full" 
+                            className="w-12 h-12 rounded-full transition-transform duration-300 hover:scale-110" 
                             style={{ backgroundColor: option.color }}
                           />
                           <div className="flex-1 text-left">
-                            <div>{option.name}</div>
+                            <div className="transition-colors duration-300">{option.name}</div>
                             <div className="text-sm text-gray-400">${option.price}</div>
                           </div>
                         </button>
