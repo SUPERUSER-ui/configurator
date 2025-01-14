@@ -18,6 +18,7 @@ interface UpholsteryOption {
   type: 'PERFORATED_SENSATEC' | 'FINE_TEXTILE';
   price: number;
   image: string;
+  color?: string;
 }
 
 const colorOptions: ColorOption[] = [
@@ -25,26 +26,26 @@ const colorOptions: ColorOption[] = [
     name: 'Alpine White',
     price: 0,
     type: 'NON-METALLIC',
-    image: 'https://images.unsplash.com/photo-1655610982413-8fa0724c4602?auto=format&fit=crop&q=80&w=800'
+    image: '/src/assets/images/customized/iX xDrive50/Alphine White.png'
   },
   {
     name: 'Black Sapphire Metallic',
     price: 0,
     type: 'METALLIC',
     trending: true,
-    image: 'https://images.unsplash.com/photo-1655610982413-8fa0724c4602?auto=format&fit=crop&q=80&w=800'
+    image: '/src/assets/images/customized/iX xDrive50/Black Sapphire Metallic.png'
   },
   {
     name: 'Dark Graphite Metallic',
     price: 0,
     type: 'METALLIC',
-    image: 'https://images.unsplash.com/photo-1655610982413-8fa0724c4602?auto=format&fit=crop&q=80&w=800'
+    image: '/src/assets/images/customized/iX xDrive50/Dark Graphite Metallic.png'
   },
   {
     name: 'Mineral White Metallic',
     price: 0,
     type: 'METALLIC',
-    image: 'https://images.unsplash.com/photo-1655610982413-8fa0724c4602?auto=format&fit=crop&q=80&w=800'
+    image: '/src/assets/images/customized/iX xDrive50/Mineral White Metallic.png'
   }
 ];
 
@@ -53,25 +54,29 @@ const upholsteryOptions: UpholsteryOption[] = [
     name: 'Oyster',
     type: 'PERFORATED_SENSATEC',
     price: 0,
-    image: 'https://images.unsplash.com/photo-1633507104446-8e94b0b27571?auto=format&fit=crop&q=80&w=800'
+    image: '/src/assets/images/customized/iX xDrive50/interior/Oyster.png',
+    color: '#E5D9D0'
   },
   {
     name: 'Mocha',
     type: 'PERFORATED_SENSATEC',
     price: 0,
-    image: 'https://images.unsplash.com/photo-1633507104446-8e94b0b27571?auto=format&fit=crop&q=80&w=800'
+    image: '/src/assets/images/customized/iX xDrive50/interior/Mocha.png',
+    color: '#8B4513'
   },
   {
     name: 'Black',
     type: 'PERFORATED_SENSATEC',
     price: 0,
-    image: 'https://images.unsplash.com/photo-1633507104446-8e94b0b27571?auto=format&fit=crop&q=80&w=800'
+    image: '/src/assets/images/customized/iX xDrive50/interior/Black.png',
+    color: '#000000'
   },
   {
     name: 'Stonegray Microfiber/Wool Blend',
     type: 'FINE_TEXTILE',
     price: 2000,
-    image: 'https://images.unsplash.com/photo-1633507104446-8e94b0b27571?auto=format&fit=crop&q=80&w=800'
+    image: '/src/assets/images/customized/iX xDrive50/interior/Stonegray Microfiber Wool Blend.png',
+    color: '#808080'
   }
 ];
 
@@ -151,8 +156,12 @@ export function VehicleCustomizer() {
         <div className="flex-1 min-h-[calc(100vh-64px)] relative">
           <img 
             src={activeTab === 'exterior' ? selectedColor.image : selectedUpholstery.image}
-            alt="Vehicle Preview"
-            className="w-full h-full object-cover"
+            alt={activeTab === 'exterior' ? selectedColor.name : selectedUpholstery.name}
+            className="w-full h-full object-contain"
+            onError={(e) => {
+              console.error(`Error loading image: ${e.currentTarget.src}`);
+              e.currentTarget.src = '/src/assets/images/fallback-image.png';
+            }}
           />
           <div className="absolute bottom-8 left-8">
             <div className="text-white space-y-2">
@@ -219,11 +228,11 @@ export function VehicleCustomizer() {
                         <div className="flex-1 text-left">
                           <div className="flex items-center space-x-2">
                             <span>{color.name}</span>
-                            {color.trending && (
+                            {/* {color.trending && (
                               <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">
                                 Trending Look
                               </span>
-                            )}
+                            )} */}
                           </div>
                           <div className="text-sm text-gray-400">${color.price}</div>
                         </div>
@@ -266,7 +275,7 @@ export function VehicleCustomizer() {
                           selectedUpholstery.name === option.name ? 'bg-gray-800' : ''
                         }`}
                       >
-                        <div className="w-12 h-12 bg-[#8B4513] rounded-full" />
+                        <div className="w-12 h-12 rounded-full" style={{ backgroundColor: option.color }} />
                         <div className="flex-1 text-left">
                           <div>{option.name}</div>
                           <div className="text-sm text-gray-400">${option.price}</div>
@@ -287,7 +296,10 @@ export function VehicleCustomizer() {
                           selectedUpholstery.name === option.name ? 'bg-gray-800' : ''
                         }`}
                       >
-                        <div className="w-12 h-12 bg-gray-400 rounded-full" />
+                        <div 
+                          className="w-12 h-12 rounded-full" 
+                          style={{ backgroundColor: option.color }}
+                        />
                         <div className="flex-1 text-left">
                           <div>{option.name}</div>
                           <div className="text-sm text-gray-400">${option.price}</div>

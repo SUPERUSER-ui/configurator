@@ -20,7 +20,7 @@ const vehicleData = {
           'Dual all-electric motors',
           'xDrive dual-motor all-wheel-drive'
         ],
-        image: '/src/assets/images/xdrive50.jpg'
+        image: '/src/assets/images/xdrive50.png'
       },
       {
         id: 'm60',
