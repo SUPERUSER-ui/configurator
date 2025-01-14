@@ -7,6 +7,10 @@ import { createAssistantFunctions } from '../utils/assistantFunctions';
 
 const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
+// Mantener una única instancia de WebRTCManager
+let globalWebRTCManager: WebRTCManager | null = null;
+let globalAudioElement: HTMLAudioElement | null = null;
+
 export function VoiceAssistant() {
   const [isOpen, setIsOpen] = useState(() => {
     return localStorage.getItem('voiceAssistant.isOpen') === 'true'
@@ -15,8 +19,7 @@ export function VoiceAssistant() {
     return localStorage.getItem('voiceAssistant.isMicOn') === 'true'
   });
   const [error, setError] = useState<string | null>(null);
-  const webRTCManagerRef = useRef<WebRTCManager | null>(null);
-  const audioElementRef = useRef<HTMLAudioElement | null>(null);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,82 +30,119 @@ export function VoiceAssistant() {
     localStorage.setItem('voiceAssistant.isMicOn', isMicOn.toString());
   }, [isMicOn]);
 
-  useEffect(() => {
+  // Verificar permisos del micrófono
+  const checkMicrophonePermission = async () => {
     try {
-      const apiKey = validateApiKey(API_KEY);
-      
-      // Crear las funciones del asistente
-      const assistantFunctions = createAssistantFunctions(
-        (color) => window.dispatchEvent(new CustomEvent('changeVehicleColor', { detail: { color } })),
-        (modelId) => navigate(`/build/${modelId}`)
-      );
-
-      // Inicializar WebRTCManager
-      webRTCManagerRef.current = new WebRTCManager({
-        apiKey,
-        onTrack: (event) => {
-          // Crear elemento de audio si no existe
-          if (!audioElementRef.current) {
-            const audioElement = document.createElement('audio');
-            audioElement.autoplay = true;
-            audioElement.style.display = 'none';
-            document.body.appendChild(audioElement);
-            audioElementRef.current = audioElement;
-          }
-          
-          // Asignar el stream al elemento de audio
-          audioElementRef.current.srcObject = event.streams[0];
-        },
-        functions: assistantFunctions
-      });
-
-      // Reconectar si estaba activo anteriormente
-      if (isMicOn && webRTCManagerRef.current) {
-        webRTCManagerRef.current.connect();
-      }
-
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setHasPermission(true);
+      setError(null);
+      return true;
     } catch (error) {
-      console.error('Error initializing voice assistant:', error);
-      setError('Error initializing voice assistant');
-    }
-
-    // Modificar el cleanup para no desconectar al navegar
-    return () => {
-      if (!isMicOn && webRTCManagerRef.current) {
-        webRTCManagerRef.current.disconnect();
+      console.error('Error checking microphone permission:', error);
+      setHasPermission(false);
+      if ((error as Error).name === 'NotAllowedError') {
+        setError('Por favor, permite el acceso al micrófono para usar el asistente de voz');
+      } else {
+        setError('Error al acceder al micrófono');
       }
-      if (audioElementRef.current) {
-        audioElementRef.current.remove();
-        audioElementRef.current = null;
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    // Verificar permisos iniciales
+    checkMicrophonePermission();
+  }, []);
+
+  useEffect(() => {
+    const initializeWebRTC = async () => {
+      try {
+        if (!globalWebRTCManager && hasPermission) {
+          const apiKey = validateApiKey(API_KEY);
+          
+          // Crear las funciones del asistente
+          const assistantFunctions = createAssistantFunctions(
+            (color) => window.dispatchEvent(new CustomEvent('changeVehicleColor', { detail: { color } })),
+            (modelId) => navigate(`/build/${modelId}`),
+            navigate
+          );
+
+          // Inicializar WebRTCManager si no existe
+          globalWebRTCManager = new WebRTCManager({
+            apiKey,
+            onTrack: (event) => {
+              // Crear elemento de audio si no existe
+              if (!globalAudioElement) {
+                const audioElement = document.createElement('audio');
+                audioElement.autoplay = true;
+                audioElement.style.display = 'none';
+                document.body.appendChild(audioElement);
+                globalAudioElement = audioElement;
+              }
+              
+              // Asignar el stream al elemento de audio
+              globalAudioElement.srcObject = event.streams[0];
+            },
+            functions: assistantFunctions
+          });
+
+          // Reconectar si estaba activo anteriormente
+          if (isMicOn) {
+            await globalWebRTCManager.connect();
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing voice assistant:', error);
+        setError('Error al inicializar el asistente de voz');
+        setIsMicOn(false);
       }
     };
-  }, [navigate, isMicOn]);
+
+    initializeWebRTC();
+
+    return () => {
+      if (!isMicOn) {
+        globalWebRTCManager?.disconnect();
+        globalWebRTCManager = null;
+        
+        if (globalAudioElement) {
+          globalAudioElement.remove();
+          globalAudioElement = null;
+        }
+      }
+    };
+  }, [navigate, isMicOn, hasPermission]);
 
   const startListening = async () => {
     try {
-      if (!webRTCManagerRef.current) {
+      // Verificar permisos antes de iniciar
+      const permitted = await checkMicrophonePermission();
+      if (!permitted) return;
+
+      if (!globalWebRTCManager) {
         throw new Error('WebRTC manager not initialized');
       }
 
-      await webRTCManagerRef.current.connect();
+      await globalWebRTCManager.connect();
       setIsMicOn(true);
       setError(null);
 
     } catch (error) {
       console.error('Error starting voice assistant:', error);
-      setError('Error accessing microphone');
+      setError('Error al acceder al micrófono');
       setIsMicOn(false);
     }
   };
 
   const stopListening = async () => {
     try {
-      webRTCManagerRef.current?.disconnect();
+      globalWebRTCManager?.disconnect();
       setIsMicOn(false);
       setError(null);
     } catch (error) {
       console.error('Error stopping voice assistant:', error);
-      setError('Error stopping voice assistant');
+      setError('Error al detener el asistente de voz');
     }
   };
 
@@ -129,6 +169,7 @@ export function VoiceAssistant() {
           className={`p-4 rounded-full transition-colors ${
             isMicOn ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
           } hover:bg-opacity-80`}
+          disabled={hasPermission === false}
         >
           {isMicOn ? <Mic size={24} /> : <MicOff size={24} />}
         </button>
