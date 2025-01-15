@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import ixImage from '../assets/images/X7 Sports Activity Vehicle.webp';
+import ixImage from '../assets/images/iX Sports Activity Vehicle.webp';
 import i4Image from '../assets/images/i4 Gran Coupe.png';
 import sevenSeriesImage from '../assets/images/Series 7.webp';
 import x7Image from '../assets/images/X7 Sports Activity Vehicle.webp';
