@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Share2 } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Share2 } from 'lucide-react';
+import stonegrayImage from '../assets/images/customized/iX xDrive50/interior/Stonegrey.png';
 
 type CustomizationTab = 'exterior' | 'interior';
 type InteriorTab = 'upholstery' | 'trim';
@@ -84,9 +85,9 @@ const upholsteryOptions: UpholsteryOption[] = [
     name: 'Stonegray Microfiber/Wool Blend',
     type: 'FINE_TEXTILE',
     price: 2000,
-    image: '/src/assets/images/customized/iX xDrive50/interior/Stonegray Microfiber Wool Blend.png',
+    image: stonegrayImage,
     color: '#808080',
-    description: 'Breathable, soft, and crafted for comfort.'
+    description: 'Designed for texture, intended for sustainability.'
   }
 ];
 
@@ -194,13 +195,21 @@ export function VehicleCustomizer() {
       {/* Main Content */}
       <div className="flex">
         {/* Vehicle Preview */}
-        <div className={`bg-${activeTab === 'exterior' ? 'white' : 'black'} flex-1 min-h-[calc(100vh-64px)] relative transition-colors duration-500`}>
+        <div className={`bg-${activeTab === 'exterior' ? 'white' : 'black'} flex-1 min-h-[calc(100vh-64px)] relative transition-colors duration-900`}>
           <div className="relative w-full h-full">
             <img 
               key={activeTab === 'exterior' ? selectedColor.image : selectedUpholstery.image}
               src={activeTab === 'exterior' ? selectedColor.image : selectedUpholstery.image}
               alt={activeTab === 'exterior' ? selectedColor.name : selectedUpholstery.name}
-              className="w-full h-full object-contain transition-opacity duration-500 animate-fadeIn"
+              className="w-full h-full object-contain transition-opacity duration-700 animate-fadeIn"
+              onLoad={() => console.log('Image loaded successfully')}
+              onError={(e) => {
+                console.error('Error loading image:', e.currentTarget.src);
+                // Para debugging
+                if (activeTab === 'interior' && selectedUpholstery.type === 'FINE_TEXTILE') {
+                  console.log('Current upholstery:', selectedUpholstery);
+                }
+              }}
             />
           </div>
 
@@ -248,7 +257,7 @@ export function VehicleCustomizer() {
                   <h2 className="text-xl mb-4">Choose your exterior</h2>
                   <div className="flex space-x-4">
                     <button className="flex-1 bg-black text-white py-2 rounded">Color</button>
-                    <button className="flex-1 bg-transparent text-black border border-gray-600 py-2 rounded">Wheels</button>
+                    {/* <button className="flex-1 bg-transparent text-black border border-gray-600 py-2 rounded">Wheels</button> */}
                   </div>
                 </div>
 
@@ -321,12 +330,12 @@ export function VehicleCustomizer() {
                     >
                       Upholstery
                     </button>
-                    <button 
+                    {/* <button 
                       onClick={() => setInteriorTab('trim')}
                       className={getInteriorTabStyle('trim')}
                     >
                       Trim
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 
@@ -386,11 +395,18 @@ export function VehicleCustomizer() {
 
           {/* Botones fijos en la parte inferior */}
           <div className="border-t border-gray-200">
-            <button className="w-full bg-gray-900 text-white py-3 hover:bg-gray-800">
-              Get Your Quote
+            <button className="w-full bg-white-900 text-black py-3 hover:bg-gray-100">
+              <div className="flex items-center justify-between px-4">
+                <span className="font-bold">Get Your Quote</span>
+                <ChevronRight size={20} />
+              </div>
             </button>
             <button className="w-full bg-blue-600 text-white py-3 hover:bg-blue-700">
-              Next / {activeTab === 'exterior' ? 'Wheels' : 'Trim'}
+              <div className="flex items-center justify-between px-4">
+                <span className="font-bold">Next</span>
+                <ChevronRight size={20} />
+              </div>
+              {/* / {activeTab === 'exterior' ? 'Wheels' : 'Trim'} */}
             </button>
           </div>
         </div>

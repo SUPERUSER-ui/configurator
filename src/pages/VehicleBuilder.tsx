@@ -40,6 +40,43 @@ const vehicleData = {
       },
     ],
   },
+  i4: {
+    name: "i4",
+    models: [
+      {
+        id: "xdrive50",
+        name: "iX xDrive50",
+        year: "2025",
+        price: "87,100",
+        specs: {
+          power: "516",
+          range: "303-309 mi",
+          acceleration: "4.4 sec",
+        },
+        features: [
+          "Dual all-electric motors",
+          "xDrive dual-motor all-wheel-drive",
+        ],
+        image: "/src/assets/images/xdrive50.png",
+      },
+      {
+        id: "m60",
+        name: "iX M60",
+        year: "2025",
+        price: "111,500",
+        specs: {
+          power: "610",
+          range: "285 mi",
+          acceleration: "3.6 sec",
+        },
+        features: [
+          "Dual high-performance electric motors",
+          "xDrive dual-motor all-wheel-drive",
+        ],
+        image: "/src/assets/images/m60.webp",
+      },
+    ],
+  },
 };
 
 export function VehicleBuilder() {
@@ -107,14 +144,14 @@ export function VehicleBuilder() {
                   {/* Especificaciones en línea */}
                   <div className="flex flex-row">
                     <div className="flex flex-col items-start mr-4">
-                      <span className="text-xl font-bold">516</span>
+                      <span className="text-xl font-bold">{model.specs.power}</span>
                       <span className="text-sm text-gray-600 mb-1">
                         Max. HP
                       </span>
                     </div>
                     <div className="flex flex-col items-start mr-4">
                       <span className="text-xl font-bold">
-                        303-309 mi{" "}
+                        {model.specs.range}
                         <button
                           className="ml-1 text-gray-500 hover:text-gray-700 relative group"
                           title="Manufacturer's Suggested Retail Price"
@@ -140,7 +177,7 @@ export function VehicleBuilder() {
                     </div>
                     <div className="flex flex-col items-start mr-4">
                       <span className="text-xl font-bold">
-                        4.4 sec{" "}
+                        {model.specs.acceleration}
                         <button
                           className="ml-1 text-gray-500 hover:text-gray-700 relative group"
                           title="Manufacturer's Suggested Retail Price"
@@ -158,7 +195,7 @@ export function VehicleBuilder() {
                             />
                           </svg>
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-2 bg-black text-white text-sm rounded shadow-lg w-64 invisible group-hover:visible">
-                          BMW AG preliminary test results. Actual acceleration results may vary, depending on specification of vehicle; road and environmental conditions; testing procedures and driving style.
+                            BMW AG preliminary test results. Actual acceleration results may vary, depending on specification of vehicle; road and environmental conditions; testing procedures and driving style.
                           </div>
                         </button>
                       </span>
