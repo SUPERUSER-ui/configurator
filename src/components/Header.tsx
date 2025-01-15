@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Search, User } from 'lucide-react';
+import logoBMW from '../assets/images/logobmw.svg';
 
 export function Header() {
   return (
@@ -8,7 +9,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-8">
           <Link to="/">
-            <img src="/src/assets/images/logobmw.svg" alt="BMW Logo" className="h-12" />
+            <img src={logoBMW} alt="BMW Logo" className="h-12" />
           </Link>
           <nav className="hidden md:flex space-x-6 text-sm">
             <Link to="/" className="hover:text-black-900 hover:font-bold">Models</Link>
