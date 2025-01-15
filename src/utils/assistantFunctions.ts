@@ -1,6 +1,14 @@
 import { VoiceAssistantFunctions } from '../types/voice';
 import { useNavigate } from 'react-router-dom';
 
+// Mapeo de IDs a rutas
+const ID_TO_PATH_MAP = {
+  home: "/",
+  ixModels: "/build/ix",
+  ixXDrive50Customize: "/build/ix/xdrive50/customize",
+  ixM60Customize: "/build/ix/m60/customize"
+} as const;
+
 export const createAssistantFunctions = (
   setSelectedColor: (color: string) => void,
   setSelectedModel: (modelId: string) => void,
@@ -35,7 +43,11 @@ export const createAssistantFunctions = (
     return { success: true, modelId };
   },
 
-  navigateTo: async ({ path }: { path: string }) => {
+  navigateTo: async ({ id }: { id: keyof typeof ID_TO_PATH_MAP }) => {
+    const path = ID_TO_PATH_MAP[id];
+    if (!path) {
+      return { success: false, error: `Ruta no encontrada para el ID: ${id}` };
+    }
     navigate(path);
     return { success: true, path };
   }
