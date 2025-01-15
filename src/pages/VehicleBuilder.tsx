@@ -1,6 +1,8 @@
 import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import xdrive50Image from '../assets/images/xdrive50.png';
+import m60Image from '../assets/images/m60.webp';
 
 const vehicleData = {
   ix: {
@@ -20,7 +22,7 @@ const vehicleData = {
           "Dual all-electric motors",
           "xDrive dual-motor all-wheel-drive",
         ],
-        image: "/src/assets/images/xdrive50.png",
+        image: xdrive50Image,
       },
       {
         id: "m60",
@@ -36,7 +38,7 @@ const vehicleData = {
           "Dual high-performance electric motors",
           "xDrive dual-motor all-wheel-drive",
         ],
-        image: "/src/assets/images/m60.webp",
+        image: m60Image,
       },
     ],
   },
@@ -57,7 +59,7 @@ const vehicleData = {
           "Dual all-electric motors",
           "xDrive dual-motor all-wheel-drive",
         ],
-        image: "/src/assets/images/xdrive50.png",
+        image: xdrive50Image,
       },
       {
         id: "m60",
@@ -73,7 +75,7 @@ const vehicleData = {
           "Dual high-performance electric motors",
           "xDrive dual-motor all-wheel-drive",
         ],
-        image: "/src/assets/images/m60.webp",
+        image: m60Image,
       },
     ],
   },

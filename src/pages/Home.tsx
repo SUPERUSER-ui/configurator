@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ixImage from '../assets/images/X7 Sports Activity Vehicle.webp';
+import i4Image from '../assets/images/i4 Gran Coupe.png';
+import sevenSeriesImage from '../assets/images/Series 7.webp';
+import x7Image from '../assets/images/X7 Sports Activity Vehicle.webp';
 
 const vehicles = [
   {
@@ -9,7 +13,7 @@ const vehicles = [
     price: '87,250',
     priceAsShown: '89,150',
     description: 'The all-electric SAV setting standards for aerodynamics, technology, and luxury.',
-    image: '/src/assets/images/iX Sports Activity Vehicle.webp'
+    image: ixImage
   },
   {
     id: 'i4',
@@ -17,7 +21,7 @@ const vehicles = [
     price: '57,900',
     priceAsShown: '61,650',
     description: 'Cutting-edge all-electric performance in a luxurious four-door sports car.',
-    image: '/src/assets/images/i4 Gran Coupe.png',
+    image: i4Image
   },
   {
     id: '7series',
@@ -25,7 +29,7 @@ const vehicles = [
     price: '97,300',
     priceAsShown: '99,150',
     description: 'The flagship vehicle of the ultimate fleet.',
-    image: '/src/assets/images/Series 7.webp',
+    image: sevenSeriesImage
   },
   {
     id: 'x7',
@@ -33,7 +37,7 @@ const vehicles = [
     price: '84,300',
     // priceAsShown: '61,650',
     description: 'The largest and most luxurious Sports Activity Vehicle ever built.',
-    image: '/src/assets/images/X7 Sports Activity Vehicle.webp',
+    image: x7Image
   },
 ];
 

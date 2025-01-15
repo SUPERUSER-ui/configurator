@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, Share2 } from 'lucide-react';
 import stonegrayImage from '../assets/images/customized/iX xDrive50/interior/Stonegrey.png';
+import blackImage from '../assets/images/customized/iX xDrive50/interior/Black.png';
+import mochaImage from '../assets/images/customized/iX xDrive50/interior/Mocha.png';
+import oysterImage from '../assets/images/customized/iX xDrive50/interior/Oyster.png';
+import alpineWhiteImage from '../assets/images/customized/iX xDrive50/Alphine White.png';
+import blackSapphireImage from '../assets/images/customized/iX xDrive50/Black Sapphire Metallic.png';
+import darkGraphiteImage from '../assets/images/customized/iX xDrive50/Dark Graphite Metallic.png';
+import mineralWhiteImage from '../assets/images/customized/iX xDrive50/Mineral White Metallic.png';
+
 
 type CustomizationTab = 'exterior' | 'interior';
 type InteriorTab = 'upholstery' | 'trim';
@@ -29,7 +37,7 @@ const colorOptions: ColorOption[] = [
     name: 'Alpine White',
     price: 0,
     type: 'NON-METALLIC',
-    image: '/src/assets/images/customized/iX xDrive50/Alphine White.png',
+    image: alpineWhiteImage,
     color: '#FFFFFF',
   },
   {
@@ -37,21 +45,21 @@ const colorOptions: ColorOption[] = [
     price: 0,
     type: 'METALLIC',
     trending: true,
-    image: '/src/assets/images/customized/iX xDrive50/Black Sapphire Metallic.png',
+    image: blackSapphireImage,
     color: '#000000',
   },
   {
     name: 'Dark Graphite Metallic',
     price: 0,
     type: 'METALLIC',
-    image: '/src/assets/images/customized/iX xDrive50/Dark Graphite Metallic.png',
+    image: darkGraphiteImage,
     color: '#000000',
   },
   {
     name: 'Mineral White Metallic',
     price: 0,
     type: 'METALLIC',
-    image: '/src/assets/images/customized/iX xDrive50/Mineral White Metallic.png',
+    image: mineralWhiteImage,
     color: '#F2F4F8',
   }
 ];
@@ -61,7 +69,7 @@ const upholsteryOptions: UpholsteryOption[] = [
     name: 'Oyster',
     type: 'PERFORATED_SENSATEC',
     price: 0,
-    image: '/src/assets/images/customized/iX xDrive50/interior/Oyster.png',
+    image: oysterImage,
     color: '#E5D9D0',
     description: 'Breathable, soft, and crafted for comfort.'
   },
@@ -69,7 +77,7 @@ const upholsteryOptions: UpholsteryOption[] = [
     name: 'Mocha',
     type: 'PERFORATED_SENSATEC',
     price: 0,
-    image: '/src/assets/images/customized/iX xDrive50/interior/Mocha.png',
+    image: mochaImage,
     color: '#8B4513',
     description: 'Breathable, soft, and crafted for comfort.'
   },
@@ -77,7 +85,7 @@ const upholsteryOptions: UpholsteryOption[] = [
     name: 'Black',
     type: 'PERFORATED_SENSATEC',
     price: 0,
-    image: '/src/assets/images/customized/iX xDrive50/interior/Black.png',
+    image: blackImage,
     color: '#000000',
     description: 'Breathable, soft, and crafted for comfort.'
   },
