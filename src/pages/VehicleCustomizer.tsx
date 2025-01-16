@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ChevronRight, Share2 } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Share2, X } from 'lucide-react';
 import stonegrayImage from '../assets/images/customized/iX xDrive50/interior/Stonegrey.png';
 import blackImage from '../assets/images/customized/iX xDrive50/interior/Black.png';
 import mochaImage from '../assets/images/customized/iX xDrive50/interior/Mocha.png';
@@ -105,6 +105,8 @@ export function VehicleCustomizer() {
   const [interiorTab, setInteriorTab] = useState<InteriorTab>('upholstery');
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
   const [selectedUpholstery, setSelectedUpholstery] = useState(upholsteryOptions[0]);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [userPhone, setUserPhone] = useState('');
   const basePrice = 118600;
 
   const getTabStyle = (tab: CustomizationTab) => 
@@ -159,6 +161,25 @@ export function VehicleCustomizer() {
       window.removeEventListener('changeTab', handleTabChange as EventListener);
     };
   }, []);
+
+  useEffect(() => {
+    const handlePhoneNumber = (event: CustomEvent) => {
+      const { phoneNumber } = event.detail;
+      setUserPhone(phoneNumber);
+      setShowPhoneModal(true);
+    };
+
+    window.addEventListener('savePhoneNumber', handlePhoneNumber as EventListener);
+    
+    return () => {
+      window.removeEventListener('savePhoneNumber', handlePhoneNumber as EventListener);
+    };
+  }, []);
+
+  const handlePhoneSubmit = () => {
+    // Aquí podrías agregar la lógica para enviar el número a un backend
+    setShowPhoneModal(false);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -403,7 +424,10 @@ export function VehicleCustomizer() {
 
           {/* Botones fijos en la parte inferior */}
           <div className="border-t border-gray-200">
-            <button className="w-full bg-white-900 text-black py-3 hover:bg-gray-100">
+            <button 
+              onClick={() => setShowPhoneModal(true)}
+              className="w-full bg-white-900 text-black py-3 hover:bg-gray-100"
+            >
               <div className="flex items-center justify-between px-4">
                 <span className="font-bold">Get Your Quote</span>
                 <ChevronRight size={20} />
@@ -414,11 +438,62 @@ export function VehicleCustomizer() {
                 <span className="font-bold">Next</span>
                 <ChevronRight size={20} />
               </div>
-              {/* / {activeTab === 'exterior' ? 'Wheels' : 'Trim'} */}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Modal de teléfono */}
+      {showPhoneModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white p-8 rounded-lg shadow-xl w-[600px] max-w-[90vw]">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-2xl font-semibold mb-2">Confirmar número de teléfono</h3>
+                <p className="text-gray-500">BMW iX xDrive50</p>
+              </div>
+              <button 
+                onClick={() => setShowPhoneModal(false)}
+                className="text-gray-500 hover:text-gray-700 p-2"
+              >
+                <X size={28} />
+              </button>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-lg mb-6">
+              <p className="text-gray-700 text-lg mb-6">
+                Por favor, verifica tu número de teléfono para que podamos contactarte sobre tu BMW personalizado.
+              </p>
+              <div className="space-y-2">
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  Número de teléfono
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={userPhone}
+                  onChange={(e) => setUserPhone(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Ej: +34 123 456 789"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowPhoneModal(false)}
+                className="px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-md text-lg transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handlePhoneSubmit}
+                className="px-6 py-3 bg-blue-600 text-white rounded-md text-lg hover:bg-blue-700 transition-colors"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

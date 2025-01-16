@@ -39,7 +39,7 @@ export class WebRTCManager {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === 'response.function_call_arguments.done') {
-          const fn = this.config.functions[msg.name];
+          const fn = this.config.functions[msg.name as keyof VoiceAssistantFunctions];
           if (fn) {
             console.log(`Calling function ${msg.name} with args:`, msg.arguments);
             const args = JSON.parse(msg.arguments);
@@ -151,6 +151,21 @@ export class WebRTCManager {
                 }
               },
               required: ['tab']
+            }
+          },
+          {
+            type: 'function',
+            name: 'savePhoneNumber',
+            description: 'Guarda el número de teléfono del cliente cuando termine de customizar el vehiculo y muestra un modal de confirmación',
+            parameters: {
+              type: 'object',
+              properties: {
+                phoneNumber: {
+                  type: 'string',
+                  description: 'El número de teléfono del cliente'
+                }
+              },
+              required: ['phoneNumber']
             }
           }
         ]
