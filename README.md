@@ -41,7 +41,8 @@ Demo BMW - Interactive Vehicle Configuration Experience
 
 3. Create a `.env` file in the project root with your OpenAI API key:
     ```bash     
-    OPENAI_API_KEY=your_openai_api_key
+    VITE_OPENAI_API_KEY=your_openai_api_key
+    VITE_OPENAI_API_URL=https://api.openai.com/v1/realtime
     ```
 
 ## 🏃 Running the Project
