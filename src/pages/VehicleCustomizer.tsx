@@ -449,7 +449,7 @@ export function VehicleCustomizer() {
           <div className="bg-white p-8 rounded-lg shadow-xl w-[600px] max-w-[90vw]">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h3 className="text-2xl font-semibold mb-2">Confirmar número de teléfono</h3>
+                <h3 className="text-2xl font-semibold mb-2">Confirm phone number</h3>
                 <p className="text-gray-500">BMW iX xDrive50</p>
               </div>
               <button 
@@ -461,11 +461,11 @@ export function VehicleCustomizer() {
             </div>
             <div className="bg-gray-50 p-6 rounded-lg mb-6">
               <p className="text-gray-700 text-lg mb-6">
-                Por favor, verifica tu número de teléfono para que podamos contactarte sobre tu BMW personalizado.
+                Please verify your phone number so we can contact you about your customized BMW.
               </p>
               <div className="space-y-2">
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                  Número de teléfono
+                  Phone number
                 </label>
                 <input
                   id="phone"
@@ -473,7 +473,7 @@ export function VehicleCustomizer() {
                   value={userPhone}
                   onChange={(e) => setUserPhone(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Ej: +34 123 456 789"
+                  placeholder="Ex: +1 123 456 789"
                 />
               </div>
             </div>
@@ -482,13 +482,13 @@ export function VehicleCustomizer() {
                 onClick={() => setShowPhoneModal(false)}
                 className="px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-md text-lg transition-colors"
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 onClick={handlePhoneSubmit}
                 className="px-6 py-3 bg-blue-600 text-white rounded-md text-lg hover:bg-blue-700 transition-colors"
               >
-                Confirmar
+                Confirm
               </button>
             </div>
           </div>

@@ -12,7 +12,9 @@ const ID_TO_PATH_MAP = {
 export const createAssistantFunctions = (
   setSelectedColor: (color: string) => void,
   setSelectedModel: (modelId: string) => void,
-  navigate: ReturnType<typeof useNavigate>
+  navigate: ReturnType<typeof useNavigate>,
+  setShowPhoneModal?: (show: boolean) => void,
+  setUserPhone?: (phone: string) => void
 ): VoiceAssistantFunctions => ({
   changeVehicleColor: async (args: { color: string }) => {
     const event = new CustomEvent('changeVehicleColor', {
@@ -50,5 +52,13 @@ export const createAssistantFunctions = (
     }
     navigate(path);
     return { success: true, path };
+  },
+
+  savePhoneNumber: async ({ phoneNumber }: { phoneNumber: string }) => {
+    const event = new CustomEvent('savePhoneNumber', {
+      detail: { phoneNumber }
+    });
+    window.dispatchEvent(event);
+    return { success: true, message: `Número de teléfono guardado: ${phoneNumber}` };
   }
 }); 
