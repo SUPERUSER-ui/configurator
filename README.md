@@ -35,7 +35,7 @@ Demo BMW - Interactive Vehicle Configuration Experience
     ```
 2. Install dependencies:
     ```bash
-    cd bmw-vehicle-configurator
+    cd bmw-v2
     npm install
     ```
 
