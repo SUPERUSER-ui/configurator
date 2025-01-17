@@ -1,4 +1,3 @@
-// import { API_CONFIG } from './apiConfig';
 import { VoiceAssistantFunctions } from '../types/voice';
 
 interface WebRTCManagerConfig {
@@ -8,12 +7,58 @@ interface WebRTCManagerConfig {
   instructions?: string;
 }
 
+interface SessionResponse {
+  client_secret: {
+    value: string;
+    expires_at: number;
+  };
+}
+
 export class WebRTCManager {
   private peerConnection!: RTCPeerConnection;
   private dataChannel: RTCDataChannel | null = null;
+  private clientSecret: string | null = null;
 
   constructor(private config: WebRTCManagerConfig) {
+    if (!this.config.apiKey) {
+      throw new Error('API Key is required');
+    }
     this.initializePeerConnection();
+  }
+
+  private async getClientSecret() {
+    if (!this.config.apiKey) {
+      throw new Error('API Key is required for getting session token');
+    }
+
+    try {
+      const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${this.config.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-realtime-preview-2024-12-17",
+          voice: "alloy",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to get session token: ${response.status} - ${errorData}`);
+      }
+
+      const data = await response.json() as SessionResponse;
+      if (!data.client_secret?.value) {
+        throw new Error('No client secret received from OpenAI');
+      }
+
+      return data.client_secret.value;
+    } catch (error) {
+      console.error('Error getting client secret:', error);
+      throw error;
+    }
   }
 
   private initializePeerConnection() {
@@ -21,7 +66,6 @@ export class WebRTCManager {
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     });
 
-    // Configurar el canal de datos
     this.dataChannel = this.peerConnection.createDataChannel('response');
     this.setupDataChannelHandlers();
     this.setupPeerConnectionHandlers();
@@ -31,7 +75,6 @@ export class WebRTCManager {
     if (!this.dataChannel) return;
 
     this.dataChannel.onopen = () => {
-      console.log('Data channel opened');
       this.configureAssistant();
     };
 
@@ -39,13 +82,10 @@ export class WebRTCManager {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === 'response.function_call_arguments.done') {
-          const fn = this.config.functions[msg.name as keyof VoiceAssistantFunctions];
+          const fn = this.config.functions[msg.name];
           if (fn) {
-            console.log(`Calling function ${msg.name} with args:`, msg.arguments);
             const args = JSON.parse(msg.arguments);
             const result = await fn(args);
-
-            // Enviar resultado de vuelta a OpenAI
             const response = {
               type: 'conversation.item.create',
               item: {
@@ -70,6 +110,7 @@ export class WebRTCManager {
       }
     };
   }
+
 
   private configureAssistant() {
     const config = {
@@ -177,6 +218,23 @@ export class WebRTCManager {
 
   async connect() {
     try {
+      if (!this.config.apiKey) {
+        throw new Error('API Key is required for connection');
+      }
+
+      // Asegurarse de que la conexión anterior esté cerrada
+      if (this.peerConnection.connectionState !== 'new') {
+        this.disconnect();
+        this.initializePeerConnection();
+      }
+
+      // Obtener el client secret
+      this.clientSecret = await this.getClientSecret();
+      
+      if (!this.clientSecret) {
+        throw new Error('Failed to obtain client secret');
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -189,23 +247,63 @@ export class WebRTCManager {
         this.peerConnection.addTransceiver(track, { direction: 'sendrecv' })
       );
 
-      const offer = await this.peerConnection.createOffer();
+      const offer = await this.peerConnection.createOffer({
+        offerToReceiveAudio: true
+      });
+
+      // Esperar a que el estado sea stable antes de setLocalDescription
+      if (this.peerConnection.signalingState !== 'stable') {
+        await new Promise(resolve => {
+          const checkState = () => {
+            if (this.peerConnection.signalingState === 'stable') {
+              resolve(true);
+            } else {
+              setTimeout(checkState, 100);
+            }
+          };
+          checkState();
+        });
+      }
+
       await this.peerConnection.setLocalDescription(offer);
 
-      const response = await fetch('/api/rtc-connect', {
+      // Esperar a que se recopilen los candidatos ICE
+      await new Promise(resolve => {
+        const checkState = () => {
+          if (this.peerConnection.iceGatheringState === 'complete') {
+            resolve(true);
+          } else {
+            setTimeout(checkState, 100);
+          }
+        };
+        checkState();
+      });
+
+      if (!this.peerConnection.localDescription?.sdp) {
+        throw new Error('No SDP available in local description');
+      }
+
+      const response = await fetch('https://api.openai.com/v1/realtime', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/sdp',
-          'Authorization': `Bearer ${this.config.apiKey}`
+          'Authorization': `Bearer ${this.clientSecret}`
         },
-        body: offer.sdp
+        body: this.peerConnection.localDescription.sdp
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to connect to OpenAI Realtime: ${response.status}`);
+        const errorData = await response.text();
+        throw new Error(`Failed to connect to OpenAI Realtime: ${response.status} - ${errorData}`);
       }
 
       const answer = await response.text();
+      
+      // Verificar el estado antes de setRemoteDescription
+      if (this.peerConnection.signalingState !== 'have-local-offer') {
+        throw new Error(`Invalid signaling state: ${this.peerConnection.signalingState}`);
+      }
+
       await this.peerConnection.setRemoteDescription({
         type: 'answer',
         sdp: answer
@@ -214,23 +312,22 @@ export class WebRTCManager {
       return stream;
     } catch (error) {
       console.error('Error connecting to WebRTC:', error);
+      this.disconnect(); // Limpiar la conexión en caso de error
       throw error;
     }
   }
 
   disconnect() {
-    // Cerrar el canal de datos
     if (this.dataChannel) {
       this.dataChannel.close();
       this.dataChannel = null;
     }
 
-    // Cerrar la conexión peer
     if (this.peerConnection) {
       this.peerConnection.close();
     }
 
-    // Reinicializar la conexión para futuros usos
+    this.clientSecret = null;
     this.initializePeerConnection();
   }
 } 

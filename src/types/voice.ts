@@ -7,6 +7,10 @@ export interface VoiceAssistantFunctions {
   savePhoneNumber: (args: { phoneNumber: string }) => Promise<{ success: boolean; message?: string; error?: string }>;
 }
 
+export interface VoiceAssistantFunctions {
+  [key: string]: (args: any) => Promise<any>;
+}
+
 export interface AssistantCommand {
   type: string;
   name: string;

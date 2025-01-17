@@ -1,0 +1,29 @@
+steps:
+  # Build y push del frontend
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/bmw-portal', '.']
+  
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/bmw-portal']
+
+  # Deploy
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'bmw-portal'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/bmw-portal'
+      - '--region'
+      - 'europe-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--set-env-vars'
+      - 'VITE_OPENAI_API_KEY=${_OPENAI_API_KEY}'
+
+images:
+  - 'gcr.io/$PROJECT_ID/bmw-portal' 
