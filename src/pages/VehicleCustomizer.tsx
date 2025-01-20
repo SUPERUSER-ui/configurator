@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, Share2, X } from 'lucide-react';
+import { sendWhatsAppTemplate } from '../utils/apiUtils';
 import stonegrayImage from '../assets/images/customized/iX xDrive50/interior/Stonegrey.png';
 import blackImage from '../assets/images/customized/iX xDrive50/interior/Black.png';
 import mochaImage from '../assets/images/customized/iX xDrive50/interior/Mocha.png';
@@ -107,6 +108,8 @@ export function VehicleCustomizer() {
   const [selectedUpholstery, setSelectedUpholstery] = useState(upholsteryOptions[0]);
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [userPhone, setUserPhone] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const basePrice = 118600;
 
   const getTabStyle = (tab: CustomizationTab) => 
@@ -176,9 +179,29 @@ export function VehicleCustomizer() {
     };
   }, []);
 
-  const handlePhoneSubmit = () => {
-    // Aquí podrías agregar la lógica para enviar el número a un backend
-    setShowPhoneModal(false);
+  const handlePhoneSubmit = async () => {
+    if (!userPhone) {
+      setSubmitError('Por favor, ingresa un número de teléfono');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      await sendWhatsAppTemplate({
+        userPhone,
+        model: 'BMW IX Xdrive50',
+        exteriorColor: selectedColor.name,
+        interiorUpholstery: selectedUpholstery.name
+      });
+      setShowPhoneModal(false);
+      // TODO: Mostrar notificación de éxito
+    } catch (error) {
+      setSubmitError('Error al enviar el mensaje. Por favor, intenta nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -471,24 +494,36 @@ export function VehicleCustomizer() {
                   id="phone"
                   type="tel"
                   value={userPhone}
-                  onChange={(e) => setUserPhone(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => {
+                    setUserPhone(e.target.value);
+                    setSubmitError(null);
+                  }}
+                  className={`w-full px-4 py-3 border rounded-md text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    submitError ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Ex: +1 123 456 789"
                 />
+                {submitError && (
+                  <p className="text-red-500 text-sm mt-1">{submitError}</p>
+                )}
               </div>
             </div>
             <div className="flex justify-end space-x-4">
               <button
                 onClick={() => setShowPhoneModal(false)}
                 className="px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-md text-lg transition-colors"
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button
                 onClick={handlePhoneSubmit}
-                className="px-6 py-3 bg-blue-600 text-white rounded-md text-lg hover:bg-blue-700 transition-colors"
+                disabled={isSubmitting}
+                className={`px-6 py-3 bg-blue-600 text-white rounded-md text-lg transition-colors ${
+                  isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+                }`}
               >
-                Confirm
+                {isSubmitting ? 'Sending...' : 'Confirm'}
               </button>
             </div>
           </div>

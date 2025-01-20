@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { WebRTCManager } from '../utils/webRTCManager';
 import { validateApiKey } from '../utils/apiUtils';
 import { createAssistantFunctions } from '../utils/assistantFunctions';
+import { VoiceAssistantFunctions } from '../types/voice';
 
 const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
@@ -26,6 +27,9 @@ export function VoiceAssistant() {
   const DEBOUNCE_TIME = 1000; // 1 segundo entre clics
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const webRTCManagerRef = useRef<WebRTCManager | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   const functions = useMemo(
     () => createAssistantFunctions(
@@ -69,61 +73,69 @@ export function VoiceAssistant() {
     checkMicrophonePermission();
   }, []);
 
-  useEffect(() => {
-    const initializeWebRTC = async () => {
-      try {
-        if (!globalWebRTCManager && hasPermission) {
-          const apiKey = validateApiKey(API_KEY);
-          
-          // Crear las funciones del asistente con las funciones del modal
-          const assistantFunctions = createAssistantFunctions(
-            setSelectedColor,
-            setSelectedModel,
-            navigate
-          );
-
-          // Inicializar WebRTCManager
-          globalWebRTCManager = new WebRTCManager({
-            apiKey,
-            onTrack: (event) => {
-              if (!globalAudioElement) {
-                const audioElement = document.createElement('audio');
-                audioElement.autoplay = true;
-                audioElement.style.display = 'none';
-                document.body.appendChild(audioElement);
-                globalAudioElement = audioElement;
-              }
-              globalAudioElement.srcObject = event.streams[0];
-            },
-            functions: assistantFunctions
-          });
-
-          // Reconectar si estaba activo anteriormente
-          if (isMicOn) {
-            await globalWebRTCManager.connect();
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing voice assistant:', error);
-        setError('Error al inicializar el asistente de voz');
-        setIsMicOn(false);
+  const connect = async () => {
+    try {
+      if (!webRTCManagerRef.current) {
+        throw new Error('WebRTCManager not initialized');
       }
-    };
 
-    initializeWebRTC();
+      await webRTCManagerRef.current.connect();
+      setIsConnected(true);
+    } catch (error) {
+      console.error('Error connecting to voice assistant:', error);
+      setIsConnected(false);
+    }
+  };
+
+  useEffect(() => {
+    const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+    
+    try {
+      const validatedApiKey = validateApiKey(API_KEY);
+      
+      const assistantFunctions: VoiceAssistantFunctions = {
+        changeVehicleColor: (color: string) => {
+          setSelectedColor(color);
+        },
+        changeInteriorColor: (color: string) => {
+          // Implementar si es necesario
+        },
+        changeTab: (tab: string) => {
+          navigate(tab);
+        },
+        selectVehicleModel: (model: string) => {
+          setSelectedModel(model);
+        },
+        sendConfiguration: () => {
+          // Implementar si es necesario
+        },
+        resetConfiguration: () => {
+          setSelectedColor('');
+          setSelectedModel('');
+        }
+      };
+
+      webRTCManagerRef.current = new WebRTCManager({
+        apiKey: validatedApiKey,
+        onTrack: (event) => {
+          if (audioRef.current) {
+            audioRef.current.srcObject = event.streams[0];
+          }
+        },
+        functions: assistantFunctions,
+      });
+
+      connect();
+    } catch (error) {
+      console.error('Error initializing WebRTCManager:', error);
+    }
 
     return () => {
-      if (!isMicOn) {
-        globalWebRTCManager?.disconnect();
-        globalWebRTCManager = null;
-        
-        if (globalAudioElement) {
-          globalAudioElement.remove();
-          globalAudioElement = null;
-        }
+      if (webRTCManagerRef.current) {
+        webRTCManagerRef.current.disconnect();
       }
     };
-  }, [navigate, isMicOn, hasPermission]);
+  }, [navigate]);
 
   const startListening = async () => {
     // Prevenir clics rápidos
