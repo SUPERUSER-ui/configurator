@@ -25,7 +25,18 @@ export default defineConfig({
             proxyReq.path = proxyReq.path + '?model=gpt-4&voice=alloy';
           });
         }
+      },
+      '/send_template': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy: any) => {
+          proxy.on('proxyReq', (proxyReq: any, req: any) => {
+            proxyReq.setHeader('Content-Type', 'application/json');
+          });
+        }
       }
-    }
-  }
+    },
+  },
+  cacheDir: './.vite'
 });

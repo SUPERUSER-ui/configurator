@@ -37,53 +37,38 @@ interface SendTemplateParams {
   interiorUpholstery: string;
 }
 
-const isProd = import.meta.env.PROD;
-
 export const sendWhatsAppTemplate = async ({
   userPhone,
   model,
   exteriorColor,
   interiorUpholstery
 }: SendTemplateParams): Promise<void> => {
-  // Usamos la URL del proxy en el backend local
-  const url = 'http://localhost:8080/proxy/send_template';
-  const requestBody = {
-    sender_phone_id: userPhone,
-    variables: {
-      model,
-      name: exteriorColor,
-      interior: interiorUpholstery
-    }
-  };
-
-  console.log('Enviando petición a:', url);
-  console.log('Body de la petición:', requestBody);
-
   try {
-    const response = await fetch(url, {
+    const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.sendTemplate}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({
+        sender_phone_id: userPhone,
+        variables: {
+          model,
+          name: exteriorColor,
+          interior: interiorUpholstery
+        }
+      })
     });
-
-    console.log('Status de la respuesta:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Texto del error:', errorText);
-      throw new Error(`Error al enviar el template: ${response.status} - ${response.statusText} - ${errorText}`);
+      console.error('Error response:', errorText);
+      throw new Error(`Error al enviar el template: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('Respuesta exitosa:', data);
     return data;
   } catch (error) {
-    console.error('Error completo:', error);
-    if (error instanceof Error) {
-      console.error('Mensaje de error:', error.message);
-    }
+    console.error('Error al enviar el template de WhatsApp:', error);
     throw error;
   }
 }; 
