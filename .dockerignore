@@ -12,4 +12,5 @@ README.md
 .env.production
 dist
 build
-coverage 
+coverage
+package-lock.json
