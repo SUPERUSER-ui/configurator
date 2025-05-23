@@ -5,7 +5,7 @@ import { WebRTCManager } from '../utils/webRTCManager';
 import { validateApiKey } from '../utils/apiUtils';
 import { createAssistantFunctions } from '../utils/assistantFunctions';
 
-const API_KEY = "sk-" + "proj-UKDHvh5lGx6XGULaTBD0GqnR_9AuI-OjvWkHwWdMLV4u7fOXsPX5-R2ke5nN_wag3XX_ru0ijwT3BlbkFJgHPGlwDzqgDf5pWFUL0eiR_PbN5JKt-NrT0E0cVOIeDt4JHLZMMnQOFzeq7UB56DAbks1PX5cA";
+const API_KEY = "sk-" + "proj-LALjmcO0Cys54czijdpLOiVcP3gz5Z6XjnXaqa7kBD0VkXD8P99fYC82rpgfcPUtihdvK_k2lrT3BlbkFJGccIlWOfZPYclbgPsy-9Q1MM3Eg4EJs50NiiYlBdtx9BPfyWY0MYkIoGYPJ3UuoADOoG7AK5YA";
 
 // Mantener una única instancia de WebRTCManager
 let globalWebRTCManager: WebRTCManager | null = null;
